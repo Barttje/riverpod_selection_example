@@ -1,3 +1,3 @@
-# Multiple category selection with Provider
+# Multiple category selection with Riverpod
 
-We are explaining the Provider by rewriting the previous example: https://bartvwezel.nl/flutter/flutter-provider-example-category-selector/
+We are explaining Riverpod by rewriting the category selection example: https://bartvwezel.nl/flutter/flutter-riverpod-example-category-selection/
