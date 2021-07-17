@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 void main() {
@@ -10,14 +9,14 @@ final categoryListProvider =
     StateNotifierProvider((_) => createCategoryList(["a", "b"]));
 
 final selectedCategories = Provider((ref) => ref
-    .watch(categoryListProvider.state)
+    .watch(categoryListProvider)
     .entries
-    .where((category) => category.value)
+    .where((MapEntry<String, bool> category) => category.value)
     .map((e) => e.key)
     .toList());
 
 final allCategories =
-    Provider((ref) => ref.watch(categoryListProvider.state).keys.toList());
+    Provider((ref) => ref.watch(categoryListProvider).keys.toList());
 
 class MultipleCategorySelection extends StatelessWidget {
   @override
@@ -44,11 +43,12 @@ class MultipleCategorySelection extends StatelessWidget {
   }
 }
 
-class CategoryFilter extends HookWidget {
+class CategoryFilter extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final selectedCategoryList = useProvider(selectedCategories);
-    final categoryList = useProvider(allCategories);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedCategoryList = ref.watch(selectedCategories);
+    final categoryList = ref.watch(allCategories);
+    final provider = ref.watch(categoryListProvider.notifier);
 
     return Flexible(
       child: ListView.builder(
@@ -56,8 +56,8 @@ class CategoryFilter extends HookWidget {
           itemBuilder: (BuildContext context, int index) {
             return CheckboxListTile(
               value: selectedCategoryList.contains(categoryList[index]),
-              onChanged: (bool selected) {
-                context.read(categoryListProvider).toggle(categoryList[index]);
+              onChanged: (bool? selected) {
+                provider.toggle(categoryList[index]);
               },
               title: Text(categoryList[index]),
             );
@@ -66,10 +66,10 @@ class CategoryFilter extends HookWidget {
   }
 }
 
-class SelectedCategories extends HookWidget {
+class SelectedCategories extends HookConsumerWidget {
   @override
-  Widget build(BuildContext context) {
-    final categoryList = useProvider(selectedCategories);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryList = ref.watch(selectedCategories);
     return Flexible(
       child: ListView.builder(
           itemCount: categoryList.length,
@@ -95,7 +95,10 @@ class CategoryList extends StateNotifier<Map<String, bool>> {
   CategoryList(Map<String, bool> state) : super(state);
 
   void toggle(String item) {
-    state[item] = !state[item];
-    state = state;
+    final currentValue = state[item];
+    if (currentValue != null) {
+      state[item] = !currentValue;
+      state = state;
+    }
   }
 }
